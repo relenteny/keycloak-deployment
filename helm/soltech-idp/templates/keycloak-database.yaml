@@ -36,7 +36,12 @@ spec:
               memory: "128Mi"
       containers:
         - name: init-database
+          {{- if .Values.database.provider.postgresql }}
           image: "{{ .Values.hooks.postgresql.image.repository }}/{{ .Values.hooks.postgresql.image.name }}:{{ .Values.hooks.postgresql.image.tag }}"
+          {{- end }}
+          {{- if .Values.database.provider.mariadb }}
+          image: "{{ .Values.hooks.mariadb.image.repository }}/{{ .Values.hooks.mariadb.image.name }}:{{ .Values.hooks.mariadb.image.tag }}"
+          {{- end }}
           imagePullPolicy: {{ .Values.hooks.postgresql.image.pullPolicy }}
           command: ["/bin/bash", "-c"]
           args:
@@ -51,7 +56,7 @@ spec:
             {{- if .Values.database.provider.mariadb }}
             - name: DATABASE_PROVIDER
               value: mariadb
-            - name:  MARIADBUSER
+            - name:  MARIADB_ROOT_USER
               value: root
             {{- end }}
             - name: KEYCLOAK_DATABASE_HOST

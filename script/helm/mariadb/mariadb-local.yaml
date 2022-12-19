@@ -14,9 +14,7 @@ mariadb:
         mysql: "30306"
 
 keycloak:
-  keycloakConfigCli:
-    extraEnvVars:
-      - "KC_DB=mariadb"
+  extraStartupArgs: "--db=mariadb --db-url=jdbc:mariadb://${KEYCLOAK_DATABASE_HOST}:${KEYCLOAK_DATABASE_PORT}/${KEYCLOAK_DATABASE_NAME}"
 
   externalDatabase:
     host: idp-mariadb
