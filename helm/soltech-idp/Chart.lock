@@ -1,0 +1,12 @@
+dependencies:
+- name: keycloak
+  repository: https://charts.bitnami.com/bitnami
+  version: 12.3.0
+- name: postgresql
+  repository: https://charts.bitnami.com/bitnami
+  version: 11.9.13
+- name: mariadb
+  repository: https://charts.bitnami.com/bitnami
+  version: 11.4.2
+digest: sha256:e967bacbc5edfad69d6f4b5515a8573957f2087f6f97eeeaa27e3c14e9c499fb
+generated: "2022-12-18T20:07:41.799705629-05:00"

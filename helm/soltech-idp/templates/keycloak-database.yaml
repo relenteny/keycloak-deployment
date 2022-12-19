@@ -1,0 +1,87 @@
+{{- if .Release.IsInstall -}}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ .Release.Name }}-keycloak-database
+  labels:
+  {{- include "soltech-idp.labels" . | nindent 4 }}
+spec:
+  template:
+    metadata:
+      labels:
+      {{- include "soltech-idp.selectorLabels" . | nindent 8 }}
+    spec:
+      restartPolicy: Never
+      initContainers:
+        - name: nc-services
+          image: "{{ .Values.hooks.alpine.image.repository }}/{{ .Values.hooks.alpine.image.name }}:{{ .Values.hooks.alpine.image.tag }}"
+          imagePullPolicy: {{ .Values.hooks.alpine.image.pullPolicy }}
+          command: ["/bin/sh", "-c"]
+          args:
+            - /nc-hooks/nc-services.sh
+          env:
+            - name: DATABASE_HOST
+              value: {{ .Values.keycloak.externalDatabase.host }}
+            - name: DATABASE_PORT
+              value: "{{ .Values.keycloak.externalDatabase.port }}"
+          volumeMounts:
+            - name: nc-services
+              mountPath: /nc-hooks
+          resources:
+            limits:
+              cpu: "250m"
+              memory: "256Mi"
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+      containers:
+        - name: init-database
+          image: "{{ .Values.hooks.postgresql.image.repository }}/{{ .Values.hooks.postgresql.image.name }}:{{ .Values.hooks.postgresql.image.tag }}"
+          imagePullPolicy: {{ .Values.hooks.postgresql.image.pullPolicy }}
+          command: ["/bin/bash", "-c"]
+          args:
+            - "/sql/database-initialize.sh {{ .Values.database.initialize }} {{ .Values.database.environment }}"
+          env:
+            {{- if .Values.database.provider.postgresql }}
+            - name: DATABASE_PROVIDER
+              value: postgresql
+            - name:  PGUSER
+              value: postgres
+            {{- end }}
+            {{- if .Values.database.provider.mariadb }}
+            - name: DATABASE_PROVIDER
+              value: mariadb
+            - name:  MARIADBUSER
+              value: root
+            {{- end }}
+            - name: KEYCLOAK_DATABASE_HOST
+              value: {{ .Values.keycloak.externalDatabase.host }}
+            - name: KEYCLOAK_DATABASE_DATABASE
+              value: {{ .Values.keycloak.externalDatabase.database }}
+            - name: KEYCLOAK_DATABASE_USERNAME
+              value: {{ .Values.keycloak.externalDatabase.user }}
+          envFrom:
+            - secretRef:
+                name: {{ .Release.Name }}-database
+            - secretRef:
+                name: {{ .Release.Name }}-keycloak
+          volumeMounts:
+            - name: keycloak-sql
+              mountPath: /sql
+          resources:
+            limits:
+              cpu: "250m"
+              memory: "256Mi"
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+      volumes:
+        - name: nc-services
+          configMap:
+            name: {{ .Release.Name }}-nc-services
+            defaultMode: 0755
+        - name: keycloak-sql
+          configMap:
+            name: {{ include "soltech-idp.fullname" . }}-keycloak-sql
+            defaultMode: 0755
+{{- end }}

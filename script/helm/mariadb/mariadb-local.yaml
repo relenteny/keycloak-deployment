@@ -1,0 +1,53 @@
+database:
+  provider:
+    mariadb: true
+  environment: local
+
+mariadb:
+  auth:
+    existingSecret: idp-database
+
+  primary:
+    service:
+      type: NodePort
+      nodePorts:
+        mysql: "30306"
+
+keycloak:
+  keycloakConfigCli:
+    extraEnvVars:
+      - "KC_DB=mariadb"
+
+  externalDatabase:
+    host: idp-mariadb
+    port: 3306
+
+  initContainers:
+    - name: service-check
+      image: "docker.io/alpine:3.15.4"
+      imagePullPolicy: IfNotPresent
+      command: ["/bin/sh", "-c"]
+      args:
+        - /nc-hooks/nc-services.sh
+      env:
+        - name: DATABASE_HOST
+          value: idp-mariadb
+        - name: DATABASE_PORT
+          value: "3306"
+      volumeMounts:
+        - name: nc-services
+          mountPath: /nc-hooks
+      resources:
+        limits:
+          cpu: "250m"
+          memory: "256Mi"
+        requests:
+          cpu: "100m"
+          memory: "128Mi"
+
+  extraVolumes:
+    - name: nc-services
+      configMap:
+        name: "idp-nc-services"
+        defaultMode: 0755
+

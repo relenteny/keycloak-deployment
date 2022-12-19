@@ -1,0 +1,8 @@
+database:
+  environment: local
+
+keycloak:
+  ingress:
+    hostname: local.k8s.soltech.net
+    ingressClassName: nginx
+    selfSigned: true

@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-nc-services
+  labels:
+  {{- include "soltech-idp.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook-delete-policy": before-hook-creation
+    "helm.sh/hook-weight": "1"
+    "helm.sh/hook": pre-install,pre-upgrade
+data:
+  nc-services.sh: |-
+    {{ .Files.Get "config/nc-services.sh"  | nindent 4 }}

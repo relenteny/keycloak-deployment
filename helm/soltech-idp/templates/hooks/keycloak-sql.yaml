@@ -1,0 +1,20 @@
+{{- if or .Values.database.install .Values.database.initialize -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "soltech-idp.fullname" . }}-keycloak-sql
+  labels:
+  {{- include "soltech-idp.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook-delete-policy": before-hook-creation
+    "helm.sh/hook-weight": "1"
+    "helm.sh/hook": pre-install,pre-upgrade
+data:
+{{ (.Files.Glob "keycloak-sql/*").AsConfig | indent 2 }}
+{{- if .Values.database.provider.postgresql }}
+{{ (.Files.Glob "keycloak-sql/postgresql/*").AsConfig | indent 2 }}
+{{- end }}
+{{- if .Values.database.provider.mariadb }}
+{{ (.Files.Glob "keycloak-sql/mariadb/*").AsConfig | indent 2 }}
+{{- end }}
+{{- end -}}
