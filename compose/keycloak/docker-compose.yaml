@@ -1,0 +1,28 @@
+services:
+  keycloak:
+    image: bitnami/keycloak:21.1.2
+    ports:
+      - 8080:8080
+    depends_on:
+      - mysql
+    environment:
+      - KEYCLOAK_ADMIN_PASSWORD=Keycloak123!
+      - KEYCLOAK_ADMIN_USER=keycloak
+      - KEYCLOAK_CREATE_ADMIN_USER=true
+      - KEYCLOAK_BIND_ADDRESS=0.0.0.0
+      - KEYCLOAK_DATABASE_HOST=mysql
+      - KEYCLOAK_DATABASE_PORT=3306
+      - KEYCLOAK_DATABASE_NAME=keycloak
+      - KEYCLOAK_DATABASE_PASSWORD=keycloak
+      - KEYCLOAK_DATABASE_USER=keycloak
+      - KEYCLOAK_EXTRA_ARGS="--db=mysql --db-url=jdbc:mysql://mysql:3306/keycloak"
+  mysql:
+    image: mysql:8.0.34
+    ports:
+      - 3306:3306
+    environment:
+      - MYSQL_ROOT_PASSWORD=mysql
+    volumes:
+      - ./mysql/0-create-database.sql:/docker-entrypoint-initdb.d/0-create-database.sql
+
+
